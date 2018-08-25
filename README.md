@@ -20,17 +20,12 @@ Start by importing the package and initializing the environment
 ```
 import gym
 import gym_tictactoe
-
 env = gym.make('TicTacToe-v1')  
-env.init()
+env.init(symbols=[-1, 1]) # Define users symbols
 ```
 
 As the TicTacToe is a two players game, you have to create two players (here we use random as action choosing strategy). The environment is not handling the two players part, so you have to do it in your code as shown below.
 ```
-# Define symbols for rendering
-ai_symbol = 'x'
-random_symbol = 'o'
-
 user = 0
 done = False
 reward = 0
@@ -41,28 +36,27 @@ state = env.reset()
 while not done:
     env.render(mode=None)
     if user == 0:
-        state, reward, done, infos = env.step(env.action_space.sample(), ai_symbol)
+        state, reward, done, infos = env.step(env.action_space.sample(), -1)
     elif user == 1:
-        state, reward, done, infos = env.step(env.action_space.sample(), random_symbol)
+        state, reward, done, infos = env.step(env.action_space.sample(), 1)
        
     # If the game isn't over, change the current player
     if not done:
         user = 0 if user == 1 else 1
     else :
-        print("Infos : " + str(infos))
         if reward == 10:
             print("Draw !")
         elif reward == -20:
+            print("Infos : " + str(infos))
             if user == 0:
-                print("Random wins ! AI Reward : " + str(r))
+                print("Random wins ! AI Reward : " + str(reward))
             elif user == 1:
-                print("AI wins ! AI Reward : " + str(-r))
+                print("AI wins ! AI Reward : " + str(-reward))
         elif reward == 20:
             if user == 0:
-                print("AI wins ! AI Reward : " + str(r))
+                print("AI wins ! AI Reward : " + str(reward))
             elif user == 1:
-                print("Random wins ! AI Reward : " + str(-r))
-
+                print("Random wins ! AI Reward : " + str(reward))
 ```
 
 *Warning : If you play on a position where you or your opponent already played, you'll get a 'bad_position' reward and will loose the game*

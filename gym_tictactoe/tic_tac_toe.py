@@ -6,8 +6,7 @@ import os
 class TicTacToeEnv(gym.Env):
     def __init__(self):
         super(TicTacToeEnv, self).__init__()
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        settings_file = os.path.join(current_dir, 'settings.xml')
+        settings_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings.xml')
         self.load_xml_settings(settings_file)
         
     def load_xml_settings(self, settings_file):
@@ -22,15 +21,15 @@ class TicTacToeEnv(gym.Env):
         for reward in rewards_section:
             self.rewards[reward.attrib['description']] = int(reward.attrib['reward'])
 
-    def init(self):
-        self.player = 1
-        self.state_vector = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    def init(self, symbols):
+        self.symbols = {
+            symbols[0]: "x",
+            symbols[1]: "o"
+        }
         self.action_space = spaces.Discrete(9)
 
-    def _reset(self):       
-        self.winner = False
-        self.nb_frames_per_game = 0
-        self.init()
+    def _reset(self):
+        self.state_vector = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         return self.state_vector
 
     # ------------------------------------------ GAME STATE CHECK ----------------------------------------
@@ -88,6 +87,14 @@ class TicTacToeEnv(gym.Env):
         return self.state_vector, self.rewards[reward_type], done, {'already_used_position': is_position_already_used}
 
     # ------------------------------------------ DISPLAY ----------------------------------------
+    def get_state_vector_to_display(self):
+        new_state_vector = []
+        for value in self.state_vector:
+            if value == 0:
+                new_state_vector.append(value)
+            else:
+                new_state_vector.append(self.symbols[value])
+        return new_state_vector
 
     def print_grid_line(self, grid, offset=0):
         print(" -------------")
@@ -107,7 +114,7 @@ class TicTacToeEnv(gym.Env):
         print()
 
     def _render(self, mode=None, close=False):
-        self.display_grid(self.state_vector)
+        self.display_grid(self.get_state_vector_to_display())
 
     def _close(self):
         return None
