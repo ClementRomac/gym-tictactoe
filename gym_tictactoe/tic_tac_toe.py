@@ -62,18 +62,8 @@ class TicTacToeEnv(gym.Env):
         return True
 
     # ------------------------------------------ ACTIONS ----------------------------------------
-    def get_playable_positions(self):
-        playable_positions = []
-        i = 0
-        while i < len(self.state_vector):
-            if self.state_vector[i] == 0:
-                playable_positions.append(i)
-            i += 1
-        return playable_positions
-
     def _step(self, action, symbol):
         is_position_already_used = False
-        playable_positions = self.get_playable_positions()
 
         if self.state_vector[action] != 0:
             is_position_already_used = True
