@@ -1,6 +1,6 @@
 # Gym TicTacToe
 ---------
-Gym TicTacToe is a light TicTacToe environment for OpenAI Gym.
+Gym TicTacToe is a light Tic-Tac-Toe environment for OpenAI Gym.
 
 ## Installation
 1. Install [OpenAi Gym](https://github.com/openai/gym)
