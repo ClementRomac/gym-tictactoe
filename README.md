@@ -4,12 +4,12 @@ Gym TicTacToe is a light TicTacToe environment for OpenAI Gym.
 
 ## Installation
 1. Install [OpenAi Gym](https://github.com/openai/gym)
-```
+```bash
 pip install gym
 ```
 
 2. Download and install `gym-tictactoe`
-```
+```bash
 git clone https://github.com/ClementRomac/gym-tictactoe
 cd gym-tictactoe
 python setup.py install
@@ -17,7 +17,7 @@ python setup.py install
 
 ## Running
 Start by importing the package and initializing the environment
-```
+```python
 import gym
 import gym_tictactoe
 env = gym.make('TicTacToe-v1')  
@@ -25,7 +25,7 @@ env.init(symbols=[-1, 1]) # Define users symbols
 ```
 
 As the TicTacToe is a two players game, you have to create two players (here we use random as action choosing strategy). The environment is not handling the two players part, so you have to do it in your code as shown below.
-```
+```python
 user = 0
 done = False
 reward = 0
