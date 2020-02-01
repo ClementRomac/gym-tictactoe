@@ -1,67 +1,116 @@
 import gym
+import numpy
 from gym import spaces, error
 import xml.etree.ElementTree as ET
 import os
 
+
 class TicTacToeEnv(gym.Env):
-    def __init__(self):
+    def __init__(self, symbols, board_size=3, win_size=3):
         super(TicTacToeEnv, self).__init__()
+        self.win_size = win_size
+        self.board_size = board_size
+        self.symbols = {
+            symbols[0]: "x",
+            symbols[1]: "o"
+        }
+        self.action_space = spaces.Discrete(self.board_size * self.board_size)
         settings_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings.xml')
         self.load_xml_settings(settings_file)
-        
+
     def load_xml_settings(self, settings_file):
         settings_tree = ET.parse(settings_file)
         settings_root = settings_tree.getroot()
         for child in settings_root:
             if child.tag == 'Rewards':
                 self.set_rewards(child)
-        
+
     def set_rewards(self, rewards_section):
         self.rewards = {}
         for reward in rewards_section:
             self.rewards[reward.attrib['description']] = int(reward.attrib['reward'])
 
-    def init(self, symbols):
-        self.symbols = {
-            symbols[0]: "x",
-            symbols[1]: "o"
-        }
-        self.action_space = spaces.Discrete(9)
-
-    def _reset(self):
-        self.state_vector = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    def reset(self):
+        self.state_vector = (self.board_size * self.board_size) * [0]
         return self.state_vector
 
     # ------------------------------------------ GAME STATE CHECK ----------------------------------------
     def is_win(self):
+        if self.check_horizontal():
+            return True
+
+        if self.check_vertical():
+            return True
+
+        return self.check_diagonal()
+
+    def check_horizontal(self):
         grid = self.state_vector
-        if (grid[0] == grid[1]) and (grid[0] == grid[2]) and (grid[0] != 0):
-            return True
-        elif (grid[3] == grid[4]) and (grid[3] == grid[5]) and (grid[3] != 0):
-            return True
-        elif (grid[6] == grid[7]) and (grid[6] == grid[8]) and (grid[6] != 0):
-            return True
-        elif (grid[0] == grid[3]) and (grid[0] == grid[6]) and (grid[0] != 0):
-            return True
-        elif (grid[1] == grid[4]) and (grid[1] == grid[7]) and (grid[1] != 0):
-            return True
-        elif (grid[2] == grid[5]) and (grid[2] == grid[8]) and (grid[2] != 0):
-            return True
-        elif (grid[0] == grid[4]) and (grid[0] == grid[8]) and (grid[0] != 0):
-            return True
-        elif (grid[2] == grid[4]) and (grid[2] == grid[6]) and (grid[2] != 0):
-            return True
-        else:
-            return False
+        cnt = 0
+        for i in range(0, self.board_size * self.board_size, self.board_size):
+            cnt = 0
+            k = i
+            for j in range(1, self.board_size):
+                (cnt, k) = (cnt + 1, k) if (grid[k] == grid[i + j] and grid[k] != 0) else (0, i + j)
+                if cnt == self.win_size - 1:
+                    return True
+
+        return False
+
+    def check_vertical(self):
+        grid = self.state_vector
+        cnt = 0
+        for i in range(0, self.board_size):
+            cnt = 0
+            k = i
+            for j in range(self.board_size, self.board_size * self.board_size, self.board_size):
+                (cnt, k) = (cnt + 1, k) if (grid[k] == grid[i + j] and grid[k] != 0) else (0, i + j)
+                if cnt == self.win_size - 1:
+                    return True
+
+        return False
+
+    def check_diagonal(self):
+        grid = self.state_vector
+        m = self.to_matrix(grid)
+        m = numpy.array(m)
+
+        for i in range(self.board_size - self.win_size + 1):
+            for j in range(self.board_size - self.win_size + 1):
+                sub_matrix = m[i:self.win_size + i, j:self.win_size + j]
+
+                if self.check_matrix(sub_matrix):
+                    return True
+
+        return False
+
+    def to_matrix(self, grid):
+        m = []
+        for i in range(0, self.board_size * self.board_size, self.board_size):
+            m.append(grid[i:i + self.board_size])
+        return m
+
+    def check_matrix(self, m):
+        cnt_primary_diag = 0
+        cnt_secondary_diag = 0
+        for i in range(self.win_size):
+            for j in range(self.win_size):
+                if i == j and m[0][0] == m[i][j] and m[0][0] != 0:
+                    cnt_primary_diag += 1
+
+                if i + j == self.win_size - 1 and m[0][self.win_size - 1] == m[i][j] and m[0][self.win_size - 1] != 0:
+                    cnt_secondary_diag += 1
+
+        return cnt_primary_diag == self.win_size or cnt_secondary_diag == self.win_size
 
     def is_draw(self):
-        for i in range(9):
+        for i in range(self.board_size * self.board_size):
             if self.state_vector[i] == 0:
                 return False
         return True
 
     # ------------------------------------------ ACTIONS ----------------------------------------
-    def _step(self, action, symbol):
+    def step(self, action, symbol):
         is_position_already_used = False
 
         if self.state_vector[action] != 0:
@@ -97,8 +146,8 @@ class TicTacToeEnv(gym.Env):
         return new_state_vector
 
     def print_grid_line(self, grid, offset=0):
-        print(" -------------")
-        for i in range(3):
+        print(" " + "-" * (self.board_size * 4 + 1))
+        for i in range(self.board_size):
             if grid[i + offset] == 0:
                 print(" | " + " ", end='')
             else:
@@ -106,18 +155,17 @@ class TicTacToeEnv(gym.Env):
         print(" |")
 
     def display_grid(self, grid):
-        self.print_grid_line(grid)
-        self.print_grid_line(grid, 3)
-        self.print_grid_line(grid, 6)
-        print(" -------------")
+        for i in range(0, self.board_size * self.board_size, self.board_size):
+            self.print_grid_line(grid, i)
 
+        print(" " + "-" * (self.board_size * 4 + 1))
         print()
 
-    def _render(self, mode=None, close=False):
+    def render(self, mode=None, close=False):
         self.display_grid(self.get_state_vector_to_display())
 
-    def _close(self):
+    def close(self):
         return None
 
-    def _seed(self, seed=None):
+    def seed(self, seed=None):
         return [seed]
