@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='gym_tictactoe',
-      version='0.0.1',
+      version='0.0.2',
       description='Light TicTacToe OpenAi Gym environment',
       url='https://github.com/ClementRomac/gym-tictactoe',
       author='Clement Romac',
