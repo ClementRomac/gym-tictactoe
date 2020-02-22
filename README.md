@@ -21,7 +21,7 @@ Start by importing the package and initializing the environment
 import gym
 import gym_tictactoe
 env = gym.make('TicTacToe-v1')  
-env.init(symbols=[-1, 1]) # Define users symbols
+env.init(symbols=[-1, 1], board_size=3, win_size=3) # Define users symbols
 ```
 
 As the TicTacToe is a two players game, you have to create two players (here we use random as action choosing strategy). The environment is not handling the two players part, so you have to do it in your code as shown below.
@@ -62,6 +62,4 @@ while not done:
 *Warning : If you play on a position where you or your opponent already played, you'll get a 'bad_position' reward and will loose the game*
 
 ## Settings
-You can change the environment settings by editing the `settings.xml` placed in your `gym-tictactoe` installation folder.
-
-Currently, the settings only allow you to change the rewards values.
+You can change the rewards by editing the `settings.xml` placed in your `gym-tictactoe` installation folder..
